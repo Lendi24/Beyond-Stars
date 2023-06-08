@@ -1,0 +1,8 @@
+// .dockerignore
+node_modules/
+.editorconfig
+.env.example
+.gitignore
+.gitattributes
+*.dockerfile
+README.md

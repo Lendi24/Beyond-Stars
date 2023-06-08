@@ -1,0 +1,103 @@
+version: "3.8"
+
+services:
+  frontend:
+    container_name: beyond-frontend
+    hostname: frontend
+    #user: react
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - planit-network
+    ports:
+      - 3002:3000
+    volumes:
+      - './frontend/src:/app/src'
+      - '/node_modules'
+    build:
+      context: ./frontend/
+      dockerfile: frontend.dockerfile
+    command: 'npm run dev -- --host --port 3000'
+
+
+
+  backend:
+    container_name: beyond-backend
+    hostname: backend
+    user: www-data
+    #environment:
+    networks:
+      - planit-network
+    ports:
+      - 4002:8000
+    volumes:
+      - './backend/app:/www/app'
+
+      - './backend/config:/www/config'
+      - './backend/database:/www/database'
+      - './backend/lang:/www/lang'
+      - './backend/public:/www/public'
+      - './backend/routes:/www/routes'
+      - './backend/resources:/www/resources'
+      #- './backend/storage:/www/storage'
+      - './backend/tests:/www/tests'
+
+      - './backend/.env:/www/.env'
+    build:
+      context: ./backend/
+      dockerfile: backend.dockerfile
+    command: 'php artisan serve --host=0.0.0.0 --port=8000'
+
+
+
+
+  database:
+    container_name: beyond-database
+    hostname: database
+    user: postgres
+    image: postgres
+    restart: always
+    networks:
+      - planit-network
+    ports:
+      - 5002:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U planit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_DB=planit
+      - POSTGRES_USER=planit
+      - POSTGRES_PASSWORD=EReEw7Pc2SF7RT4XTx
+    volumes:
+      - 'db-data:/var/lib/postgresql/data'
+    build:
+      context: ./database/
+      dockerfile: database.dockerfile
+
+
+  adminer:
+    container_name: planit-adminer
+    image: adminer
+    restart: always
+    networks:
+      - planit-network
+    ports:
+      - 6002:8080
+
+
+volumes:
+  db-data:
+
+configs:
+  httpd-config:
+    external: true
+
+
+#secrets:
+#  server-certificate:
+#    external: true
+
+networks:
+  planit-network: {}
